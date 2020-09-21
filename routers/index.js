@@ -3,6 +3,7 @@ const express = require('express')
 const md5 = require('blueimp-md5')
 
 const UserModel = require('../models/UserModel')
+const CategoryModel = require('../models/CategoryModel')
 
 // 得到路由器对象
 const router = express.Router()
@@ -26,6 +27,45 @@ router.post('/login', (req, res) => {
     .catch(error => {
       console.error('登录异常', error)
       res.send({status: 1, msg: '登录异常，请重试'})
+    })
+})
+
+// 获取分类列表
+router.get('/manage/category/list', (req, res) => {
+  const parentId = req.query.parentId || '0'
+  CategoryModel.find({parentId})
+    .then(categorys => {
+      res.send({status: 0, data: categorys})
+    })
+    .catch(error => {
+      console.error('获取分类列表异常', error)
+      res.send({status: 1, msg: '获取分类列表异常，请重试'})
+    })
+})
+
+// 添加分类
+router.post('/manage/category/add', (req, res) => {
+  const {categoryName, parentId} = req.body
+  CategoryModel.create({name: categoryName, parentId: parentId || '0'})
+    .then(category => {
+      res.send({status: 0, data: category})
+    })
+    .catch(error => {
+      console.error('添加分类异常', error)
+      res.send({status: 1, msg: '添加分类异常，请重试'})
+    })
+})
+
+// 更新分类名称
+router.post('/manage/category/update', (req, res) => {
+  const {categoryId, categoryName} = req.body
+  CategoryModel.findOneAndUpdate({_id: categoryId}, {name: categoryName})
+    .then(oldCategory => {
+      res.send({status: 0})
+    })
+    .catch(error => {
+      console.error('更新分类名称异常', error)
+      res.send({status: 1, msg: '更新分类名称异常，请重试'})
     })
 })
 
