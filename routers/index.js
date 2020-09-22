@@ -4,6 +4,7 @@ const md5 = require('blueimp-md5')
 
 const UserModel = require('../models/UserModel')
 const CategoryModel = require('../models/CategoryModel')
+const ProductModel = require('../models/ProductModel')
 
 // 得到路由器对象
 const router = express.Router()
@@ -68,5 +69,67 @@ router.post('/manage/category/update', (req, res) => {
       res.send({status: 1, msg: '更新分类名称异常，请重试'})
     })
 })
+
+// 添加商品
+router.post('/manage/product/add', (req, res) => {
+  const product = req.body
+  ProductModel.create(product)
+    .then(product => {
+      res.send({status: 0, data: product})
+    })
+    .catch(error => {
+      console.error('添加产品异常', error)
+      res.send({status: 1, msg: '添加产品异常，请重试'})
+    })
+})
+
+// 获取商品分页列表
+router.get('/manage/product/list', (req, res) => {
+  const {pageNum, pageSize} = req.query
+  ProductModel.find({})
+    .then(products => {
+      res.send({status: 0, data: pageFilter(products, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('获取商品列表异常', error)
+      res.send({status: 1, msg: '获取商品列表异常，请重试'})
+    })
+})
+
+// 更新产品状态(上架/下架)
+router.post('/manage/product/updateStatus', (req, res) => {
+  const {productId, status} = req.body
+  ProductModel.findOneAndUpdate({_id: productId}, {status})
+    .then(oldProduct => {
+      res.send({status: 0})
+    })
+    .catch(error => {
+      console.error('更新产品状态异常', error)
+      res.send({status: 1, msg: '更新产品状态异常，请重试'})
+    })
+})
+
+// 得到指定数组的分页信息对象
+function pageFilter(arr, pageNum, pageSize) {
+  // 转换数据类型
+  pageNum = pageNum * 1
+  pageSize = pageSize * 1
+  const total = arr.length
+  // 通过Math.floor向下取整计算总页数
+  const pages = Math.floor((total + pageSize - 1) / pageSize)
+  const start = pageSize * (pageNum - 1)
+  const end = start + pageSize <= total ? start + pageSize : total
+  const list = []
+  for (let i = start; i < end; i++) {
+    list.push(arr[i])
+  }
+  return {
+    pageNum,
+    total,
+    pages,
+    pageSize,
+    list
+  }
+}
 
 module.exports = router
