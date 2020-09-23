@@ -96,7 +96,7 @@ router.get('/manage/product/list', (req, res) => {
     })
 })
 
-// 更新产品状态(上架/下架)
+// 更新商品状态(上架/下架)
 router.post('/manage/product/updateStatus', (req, res) => {
   const {productId, status} = req.body
   ProductModel.findOneAndUpdate({_id: productId}, {status})
@@ -106,6 +106,51 @@ router.post('/manage/product/updateStatus', (req, res) => {
     .catch(error => {
       console.error('更新产品状态异常', error)
       res.send({status: 1, msg: '更新产品状态异常，请重试'})
+    })
+})
+
+// 搜索商品列表
+router.get('/manage/product/search', (req, res) => {
+  const {pageNum, pageSize, searchName, productName, productDesc} = req.query
+  let contition = {}
+  if (productName) {
+    contition = {name: new RegExp(`^.*${productName}.*$`)}
+  } else if (productDesc) {
+    contition = {desc: new RegExp(`^.*${productDesc}.*$`)}
+  }
+  ProductModel.find(contition)
+    .then(products => {
+      res.send({status: 0, data: pageFilter(products, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('搜索商品列表异常', error)
+      res.send({status: 1, msg: '搜索商品列表异常，请重试'})
+    })
+})
+
+// 根据分类ID获取分类
+router.get('/manage/category/info', (req, res) => {
+  const categoryId = req.query.categoryId
+  CategoryModel.findOne({_id: categoryId})
+    .then(category => {
+      res.send({status: 0, data: category})
+    })
+    .catch(error => {
+      console.error('获取分类信息异常', error)
+      res.send({status: 1, msg: '获取分类信息异常，请重试'})
+    })
+})
+
+// 更新商品
+router.post('/manage/product/update', (req, res) => {
+  const product = req.body
+  ProductModel.findOneAndUpdate({_id: product._id}, product)
+    .then(oldProduct => {
+      res.send({status: 0})
+    })
+    .catch(error => {
+      console.error('更新商品异常', error)
+      res.send({status: 1, msg: '更新商品名称异常，请重试'})
     })
 })
 
