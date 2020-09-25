@@ -6,6 +6,7 @@ const UserModel = require('../models/UserModel')
 const CategoryModel = require('../models/CategoryModel')
 const ProductModel = require('../models/ProductModel')
 const RoleModel = require('../models/RoleModel')
+const OrderModel = require('../models/OrderModel')
 
 // 得到路由器对象
 const router = express.Router()
@@ -256,6 +257,31 @@ router.post('/manage/user/delete', (req, res) => {
   UserModel.deleteOne({_id: userId})
     .then((doc) => {
       res.send({status: 0})
+    })
+})
+
+// 新增订单
+router.post('/manage/order/add', (req, res) => {
+  const {orderId} = req.body
+  OrderModel.create({orderId: orderId})
+    .then(order => {
+      res.send({status: 0, data: order})
+    })
+    .catch(error => {
+      console.error('新增订单异常', error)
+      res.send({status: 1, msg: '新增订单异常，请重试'})
+    })
+})
+
+// 获取订单列表
+router.get('/manage/order/list', (req, res) => {
+  OrderModel.find()
+    .then(orders => {
+      res.send({status: 0, data: orders})
+    })
+    .catch(error => {
+      console.error('获取订单列表异常', error)
+      res.send({status: 1, msg: '获取订单列表异常，请重试'})
     })
 })
 
