@@ -1,6 +1,9 @@
 // 用来定义路由的路由器模块
 const express = require('express')
 const md5 = require('blueimp-md5')
+const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
 
 const UserModel = require('../models/UserModel')
 const CategoryModel = require('../models/CategoryModel')
@@ -283,6 +286,27 @@ router.get('/manage/order/list', (req, res) => {
       console.error('获取订单列表异常', error)
       res.send({status: 1, msg: '获取订单列表异常，请重试'})
     })
+})
+
+// 指定文件上传路径
+let upload = multer({dest: path.join(__dirname, './../public/upload/tmp')});
+
+// 获取上传的图片
+router.post('/manage/img/upload', upload.single('file'), function (req, res, next) {
+  console.log(req.body)
+  if (req.body.fileLocation) {
+    const newName = req.file.path.replace(/\\tmp/, '\\' + req.body.fileLocation) + path.parse(req.file.originalname).ext
+    fs.rename(req.file.path, newName, err => {
+      if (err) {
+        res.json(result.createResult(false, {message: err.message}))
+      } else {
+        let fileName = newName.split('\\').pop()
+        res.json(result.createResult(true, {path: `${req.body.fileLocation}/${fileName}`}))
+      }
+    })
+  } else {
+    res.json(result.createResult(false, {message: '未指定文件路径'}))
+  }
 })
 
 // 得到指定数组的分页信息对象
