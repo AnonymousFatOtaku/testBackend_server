@@ -4,6 +4,7 @@ const md5 = require('blueimp-md5')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
+const multiparty = require('multiparty');
 
 const UserModel = require('../models/UserModel')
 const CategoryModel = require('../models/CategoryModel')
@@ -18,7 +19,8 @@ const router = express.Router()
 router.post('/login', (req, res) => {
   const {username, password} = req.body
   // 根据username和password查询数据库users，如果没有则返回提示错误的信息，如果有则返回包含user的登录成功信息
-  UserModel.findOne({username, password: md5(password)})
+  // UserModel.findOne({username, password: md5(password)})
+  UserModel.findOne({username, password: password})
     .then(user => {
       if (user) { // 登录成功
         // 生成一个cookie(userid:user._id)并交给浏览器保存
@@ -212,7 +214,8 @@ router.post('/manage/user/add', (req, res) => {
         })
       } else { // 无值代表不存在
         // 保存
-        return UserModel.create({...req.body, password: md5(password || 'admin')})
+        // return UserModel.create({...req.body, password: md5(password)})
+        return UserModel.create({...req.body, password: password})
       }
     })
     .then(user => {
@@ -292,22 +295,33 @@ router.get('/manage/order/list', (req, res) => {
 let upload = multer({dest: path.join(__dirname, './../public/upload/tmp')});
 
 // 获取上传的图片
-router.post('/manage/img/upload', upload.single('file'), function (req, res, next) {
-  console.log(req.body)
-  if (req.body.fileLocation) {
-    const newName = req.file.path.replace(/\\tmp/, '\\' + req.body.fileLocation) + path.parse(req.file.originalname).ext
-    fs.rename(req.file.path, newName, err => {
-      if (err) {
-        res.json(result.createResult(false, {message: err.message}))
-      } else {
-        let fileName = newName.split('\\').pop()
-        res.json(result.createResult(true, {path: `${req.body.fileLocation}/${fileName}`}))
-      }
-    })
-  } else {
-    res.json(result.createResult(false, {message: '未指定文件路径'}))
-  }
-})
+router.post('/manage/img/upload', function (req, res) {
+  let form = new multiparty.Form();
+  // res.setHeader('text/plain');
+  let msg = {info: '', img: ''};
+  console.log(__dirname);
+  form.encoding = 'utf-8';
+  form.uploadDir = __dirname + "/uploads";
+  //设置单文件大小限制
+  form.maxFilesSize = 2 * 1024 * 1024;
+  //form.maxFields = 1000;  设置所以文件的大小总和
+  form.parse(req, function (err, fields, files) {
+    console.log(err);
+    if (err) {
+      console.log('错误');
+      msg.info = '上传失败';
+      res.send(msg);
+      return;
+    }
+    console.log(files.files[0].originalFilename);
+    msg.img = path.join(__dirname, '/uploads/' + files.files[0].originalFilename);
+    console.log(msg.img);
+    msg.info = '上传成功'
+    msg.len = files.length;
+    res.writeHead(200, {"Content-type": "text/html;charset=UTF-8"});
+    res.send(msg);
+  });
+});
 
 // 得到指定数组的分页信息对象
 function pageFilter(arr, pageNum, pageSize) {

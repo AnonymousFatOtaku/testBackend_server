@@ -12,9 +12,10 @@
   "dependencies": {
     "blueimp-md5": "^2.18.0",
     "cookie-parser": "^1.4.3",
-    "express": "^4.16.4",
+    "express": "^4.17.1",
     "jfum": "^1.0.3",
     "mongoose": "^5.3.7",
-    "multer": "^1.4.1"
+    "multer": "^1.4.1",
+    "multiparty": "^4.2.2"
   }
 }
