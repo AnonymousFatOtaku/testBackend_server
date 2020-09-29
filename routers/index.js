@@ -1,10 +1,6 @@
 // 用来定义路由的路由器模块
 const express = require('express')
 const md5 = require('blueimp-md5')
-const multer = require('multer')
-const path = require('path')
-const fs = require('fs')
-const multiparty = require('multiparty');
 
 const UserModel = require('../models/UserModel')
 const CategoryModel = require('../models/CategoryModel')
@@ -291,38 +287,6 @@ router.get('/manage/order/list', (req, res) => {
     })
 })
 
-// 指定文件上传路径
-let upload = multer({dest: path.join(__dirname, './../public/upload/tmp')});
-
-// 获取上传的图片
-router.post('/manage/img/upload', function (req, res) {
-  let form = new multiparty.Form();
-  // res.setHeader('text/plain');
-  let msg = {info: '', img: ''};
-  console.log(__dirname);
-  form.encoding = 'utf-8';
-  form.uploadDir = __dirname + "/uploads";
-  //设置单文件大小限制
-  form.maxFilesSize = 2 * 1024 * 1024;
-  //form.maxFields = 1000;  设置所以文件的大小总和
-  form.parse(req, function (err, fields, files) {
-    console.log(err);
-    if (err) {
-      console.log('错误');
-      msg.info = '上传失败';
-      res.send(msg);
-      return;
-    }
-    console.log(files.files[0].originalFilename);
-    msg.img = path.join(__dirname, '/uploads/' + files.files[0].originalFilename);
-    console.log(msg.img);
-    msg.info = '上传成功'
-    msg.len = files.length;
-    res.writeHead(200, {"Content-type": "text/html;charset=UTF-8"});
-    res.send(msg);
-  });
-});
-
 // 得到指定数组的分页信息对象
 function pageFilter(arr, pageNum, pageSize) {
   // 转换数据类型
@@ -345,5 +309,7 @@ function pageFilter(arr, pageNum, pageSize) {
     list
   }
 }
+
+require('./file-upload')(router)
 
 module.exports = router
