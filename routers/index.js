@@ -15,8 +15,7 @@ const router = express.Router()
 router.post('/login', (req, res) => {
   const {username, password} = req.body
   // 根据username和password查询数据库users，如果没有则返回提示错误的信息，如果有则返回包含user的登录成功信息
-  // UserModel.findOne({username, password: md5(password)})
-  UserModel.findOne({username, password: password})
+  UserModel.findOne({username, password: md5(password)})
     .then(user => {
       if (user) { // 登录成功
         // 生成一个cookie(userid:user._id)并交给浏览器保存
@@ -210,8 +209,7 @@ router.post('/manage/user/add', (req, res) => {
         })
       } else { // 无值代表不存在
         // 保存
-        // return UserModel.create({...req.body, password: md5(password)})
-        return UserModel.create({...req.body, password: password})
+        return UserModel.create({...req.body, password: md5(password)})
       }
     })
     .then(user => {
@@ -241,7 +239,7 @@ router.get('/manage/user/list', (req, res) => {
 // 更新用户
 router.post('/manage/user/update', (req, res) => {
   const user = req.body
-  UserModel.findOneAndUpdate({_id: user._id}, user)
+  UserModel.findOneAndUpdate({_id: user._id}, {user, password: md5(user.password)})
     .then(oldUser => {
       const data = Object.assign(oldUser, user)
       // 返回
