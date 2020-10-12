@@ -262,8 +262,8 @@ router.post('/manage/user/delete', (req, res) => {
 
 // 新增订单
 router.post('/manage/order/add', (req, res) => {
-  const {orderId} = req.body
-  OrderModel.create({orderId: orderId})
+  const order = req.body
+  OrderModel.create(order)
     .then(order => {
       res.send({status: 0, data: order})
     })
@@ -273,15 +273,37 @@ router.post('/manage/order/add', (req, res) => {
     })
 })
 
-// 获取订单列表
+// 获取订单分页列表
 router.get('/manage/order/list', (req, res) => {
-  OrderModel.find()
+  const {pageNum, pageSize} = req.query
+  OrderModel.find({})
     .then(orders => {
-      res.send({status: 0, data: orders})
+      res.send({status: 0, data: pageFilter(orders, pageNum, pageSize)})
     })
     .catch(error => {
       console.error('获取订单列表异常', error)
       res.send({status: 1, msg: '获取订单列表异常，请重试'})
+    })
+})
+
+// 搜索订单列表
+router.get('/manage/order/search', (req, res) => {
+  const {pageNum, pageSize, searchName, productName, role_id, username} = req.query
+  let contition = {}
+  if (productName) {
+    contition = {productName: new RegExp(`^.*${productName}.*$`)}
+  } else if (role_id) {
+    contition = {role_id: new RegExp(`^.*${role_id}.*$`)}
+  } else if (username) {
+    contition = {username: new RegExp(`^.*${username}.*$`)}
+  }
+  OrderModel.find(contition)
+    .then(orders => {
+      res.send({status: 0, data: pageFilter(orders, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('搜索订单列表异常', error)
+      res.send({status: 1, msg: '搜索订单列表异常，请重试'})
     })
 })
 

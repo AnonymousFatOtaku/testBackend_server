@@ -10,6 +10,7 @@ const orderSchema = new mongoose.Schema({
   role_id: {type: String}, // 商品分类
   productCount: {type: Number}, // 商品数量
   orderPrice: {type: String}, // 订单价格
+  username: {type: String}, // 下单用户
 })
 
 // 3.定义Model(与集合对应，可以操作集合)
