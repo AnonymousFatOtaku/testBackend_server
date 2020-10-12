@@ -292,11 +292,68 @@ router.get('/manage/order/search', (req, res) => {
   let contition = {}
   if (productName) {
     contition = {productName: new RegExp(`^.*${productName}.*$`)}
-  } else if (role_id) {
-    contition = {role_id: new RegExp(`^.*${role_id}.*$`)}
   } else if (username) {
     contition = {username: new RegExp(`^.*${username}.*$`)}
   }
+  OrderModel.find(contition)
+    .then(orders => {
+      res.send({status: 0, data: pageFilter(orders, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('搜索订单列表异常', error)
+      res.send({status: 1, msg: '搜索订单列表异常，请重试'})
+    })
+})
+
+// 查询展示给用户的商品列表
+router.get('/manage/userProduct/list', (req, res) => {
+  const {pageNum, pageSize} = req.query
+  ProductModel.find({status: true}) // 只展示上架商品
+    .then(products => {
+      res.send({status: 0, data: pageFilter(products, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('获取商品列表异常', error)
+      res.send({status: 1, msg: '获取商品列表异常，请重试'})
+    })
+})
+
+// 搜索用户商品列表
+router.get('/manage/userProduct/search', (req, res) => {
+  const {pageNum, pageSize, searchName, productName, productDesc} = req.query
+  let contition = {}
+  if (productName) {
+    contition = {name: new RegExp(`^.*${productName}.*$`), status: true}
+  } else if (productDesc) {
+    contition = {desc: new RegExp(`^.*${productDesc}.*$`), status: true}
+  }
+  ProductModel.find(contition)
+    .then(products => {
+      res.send({status: 0, data: pageFilter(products, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('搜索商品列表异常', error)
+      res.send({status: 1, msg: '搜索商品列表异常，请重试'})
+    })
+})
+
+// 获取订单分页列表
+router.get('/manage/userOrder/list', (req, res) => {
+  const {pageNum, pageSize, username} = req.query
+  OrderModel.find({username: username})
+    .then(orders => {
+      res.send({status: 0, data: pageFilter(orders, pageNum, pageSize)})
+    })
+    .catch(error => {
+      console.error('获取订单列表异常', error)
+      res.send({status: 1, msg: '获取订单列表异常，请重试'})
+    })
+})
+
+// 搜索订单列表
+router.get('/manage/userOrder/search', (req, res) => {
+  const {pageNum, pageSize, searchName, productName, username} = req.query
+  let contition = {productName: new RegExp(`^.*${productName}.*$`), username: username}
   OrderModel.find(contition)
     .then(orders => {
       res.send({status: 0, data: pageFilter(orders, pageNum, pageSize)})
